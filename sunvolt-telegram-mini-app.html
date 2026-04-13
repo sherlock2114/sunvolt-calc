@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SunVolt Energy — Kalkulyator</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #0F1923;
+  --card: #162430;
+  --card2: #1C2E3E;
+  --text: #E8EDF2;
+  --text2: #7A95A8;
+  --text3: #4A6575;
+  --green: #4ADE80;
+  --green-bg: rgba(74,222,128,0.08);
+  --green-dark: #1a3a2a;
+  --amber: #F8B500;
+  --amber-bg: rgba(248,181,0,0.08);
+  --blue: #60A5FA;
+  --blue-bg: rgba(96,165,250,0.08);
+  --coral: #F0997B;
+  --coral-bg: rgba(240,153,123,0.08);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 0 16px 100px;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.header {
+  text-align: center;
+  padding: 20px 0 16px;
+}
+.logo { font-size: 22px; font-weight: 600; color: var(--amber); letter-spacing: 0.5px; }
+.logo-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.slider-group { margin-bottom: 18px; }
+.slider-group:last-child { margin-bottom: 0; }
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.slider-label { font-size: 13px; color: var(--text2); }
+.slider-val { font-size: 15px; font-weight: 600; color: var(--text); }
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #0F1923;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--amber);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+}
+input[type=range]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--amber);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+}
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.metric {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+.metric-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.metric-value { font-size: 20px; font-weight: 600; }
+.metric-note { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.season-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.season-card {
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.season-card::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  opacity: 0.15;
+}
+.s-spring { background: var(--green-dark); }
+.s-spring::after { background: var(--green); }
+.s-summer { background: #2a2510; }
+.s-summer::after { background: var(--amber); }
+.s-autumn { background: #2a1a14; }
+.s-autumn::after { background: var(--coral); }
+.s-winter { background: #142030; }
+.s-winter::after { background: var(--blue); }
+.s-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.s-months { font-size: 10px; color: var(--text3); margin-bottom: 10px; }
+.s-row { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; }
+.s-row-label { color: var(--text3); }
+.s-row-val { font-weight: 500; }
+.s-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 6px 0; }
+.s-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; padding-top: 4px; }
+.bar-section { margin: 12px 0; }
+.bar-group { margin-bottom: 14px; }
+.bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.bar-name { font-size: 12px; color: var(--text2); }
+.bar-amount { font-size: 13px; font-weight: 600; }
+.bar-track { height: 8px; background: #0F1923; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+.profit-card {
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.profit-green { background: var(--green-dark); }
+.profit-amber { background: #2a2510; }
+.p-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.p-text { font-size: 12px; line-height: 1.7; opacity: 0.85; }
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.year-cell {
+  background: #0F1923;
+  border-radius: var(--radius-sm);
+  padding: 12px 10px;
+  text-align: center;
+}
+.y-label { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+.y-value { font-size: 16px; font-weight: 600; }
+.y-sub { font-size: 9px; color: var(--text3); margin-top: 2px; }
+.share-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  font-family: inherit;
+}
+.share-primary { background: var(--amber); color: #000; }
+.share-secondary { background: var(--card); color: var(--text); margin-top: 8px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">SunVolt Energy</div>
+  <div class="logo-sub">Quyosh panel foyda kalkulyatori</div>
+</div>
+
+<div class="card">
+  <div class="section-title">Sozlamalar</div>
+
+  <div class="slider-group">
+    <div class="slider-header">
+      <span class="slider-label">Tizim quvvati</span>
+      <span class="slider-val" id="kw_v">10 kVt</span>
+    </div>
+    <input type="range" min="3" max="500" step="1" value="10" id="kw" oninput="calc()">
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-header">
+      <span class="slider-label">Oylik elektr sarfi</span>
+      <span class="slider-val" id="usage_v">600 kVt</span>
+    </div>
+    <input type="range" min="100" max="3000" step="50" value="600" id="usage" oninput="calc()">
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-header">
+      <span class="slider-label">Elektr tarifi</span>
+      <span class="slider-val" id="tariff_v">600 so'm</span>
+    </div>
+    <input type="range" min="400" max="1500" step="50" value="600" id="tariff" oninput="calc()">
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-header">
+      <span class="slider-label">Sotish narxi (davlatga)</span>
+      <span class="slider-val" id="sell_v">1,000 so'm</span>
+    </div>
+    <input type="range" min="500" max="1500" step="50" value="1000" id="sell" oninput="calc()">
+  </div>
+</div>
+
+<div class="metrics" id="top_metrics"></div>
+
+<div class="card">
+  <div class="section-title">4 fasl bo'yicha foyda</div>
+  <div class="season-grid" id="seasons"></div>
+</div>
+
+<div class="card">
+  <div class="section-title">Yillik tuzilma</div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--green);"></span>Tejash</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--amber);"></span>Sotish</span>
+  </div>
+  <div class="bar-section" id="bars"></div>
+</div>
+
+<div id="year_projection"></div>
+
+<div id="pitch_cards"></div>
+
+<button class="share-btn share-primary" onclick="shareResult()">
+  Natijani do'stga yuborish
+</button>
+<button class="share-btn share-secondary" onclick="requestConsult()">
+  Bepul konsultatsiya olish
+</button>
+
+<script>
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#0F1923');
+  tg.setBackgroundColor('#0F1923');
+}
+
+const MONTHS = [
+  { name: 'Yan', psh: 2.2, days: 31 },
+  { name: 'Fev', psh: 3.2, days: 28 },
+  { name: 'Mar', psh: 4.5, days: 31 },
+  { name: 'Apr', psh: 6.1, days: 30 },
+  { name: 'May', psh: 7.5, days: 31 },
+  { name: 'Iyn', psh: 8.5, days: 30 },
+  { name: 'Iyl', psh: 8.8, days: 31 },
+  { name: 'Avg', psh: 7.7, days: 31 },
+  { name: 'Sen', psh: 5.8, days: 30 },
+  { name: 'Okt', psh: 4.2, days: 31 },
+  { name: 'Noy', psh: 3.1, days: 30 },
+  { name: 'Dek', psh: 2.0, days: 31 },
+];
+const SEASONS = [
+  { name: 'Bahor', months: 'Mart — May', mIdx: [2,3,4], cls: 's-spring', color: 'var(--green)' },
+  { name: 'Yoz', months: 'Iyun — Avg', mIdx: [5,6,7], cls: 's-summer', color: 'var(--amber)' },
+  { name: 'Kuz', months: 'Sen — Noy', mIdx: [8,9,10], cls: 's-autumn', color: 'var(--coral)' },
+  { name: 'Qish', months: 'Dek — Fev', mIdx: [11,0,1], cls: 's-winter', color: 'var(--blue)' },
+];
+
+function fmt(n) {
+  if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(1) + ' mlrd';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1) + ' mln';
+  if (Math.abs(n) >= 1000) return Math.round(n/1000).toLocaleString() + 'K';
+  return Math.round(n).toLocaleString();
+}
+
+let lastResult = {};
+
+function calc() {
+  const kw = +document.getElementById('kw').value;
+  const usage = +document.getElementById('usage').value;
+  const tariff = +document.getElementById('tariff').value;
+  const sellP = +document.getElementById('sell').value;
+  const pricePerKw = 5;
+
+  document.getElementById('kw_v').textContent = kw + ' kVt';
+  document.getElementById('usage_v').textContent = usage + ' kVt';
+  document.getElementById('tariff_v').textContent = tariff.toLocaleString() + " so'm";
+  document.getElementById('sell_v').textContent = sellP.toLocaleString() + " so'm";
+
+  const totalCost = kw * pricePerKw * 1e6;
+  const realCost = totalCost;
+
+  let yearSave = 0, yearSell = 0;
+  const sd = [];
+  const monthlyData = MONTHS.map(m => {
+    const gen = Math.round(kw * m.psh * m.days * 0.80);
+    const selfUse = Math.min(gen, usage);
+    const excess = Math.max(0, gen - usage);
+    const saving = selfUse * tariff;
+    const selling = excess * sellP;
+    return { ...m, gen, selfUse, excess, saving, selling, total: saving + selling };
+  });
+
+  SEASONS.forEach(s => {
+    let seasonGen = 0, selfUse = 0, excess = 0, saving = 0, selling = 0;
+    s.mIdx.forEach(i => {
+      const m = monthlyData[i];
+      seasonGen += m.gen;
+      selfUse += m.selfUse;
+      excess += m.excess;
+      saving += m.saving;
+      selling += m.selling;
+    });
+    const avgPsh = (s.mIdx.reduce((a, i) => a + MONTHS[i].psh, 0) / 3).toFixed(1);
+    yearSave += saving;
+    yearSell += selling;
+    sd.push({ ...s, seasonGen, selfUse, excess, saving, selling, total: saving + selling, avgPsh });
+  });
+
+  const yearTotal = yearSave + yearSell;
+  const roi = yearTotal > 0 ? realCost / yearTotal : 99;
+
+  lastResult = { kw, usage, tariff, sellP, realCost, yearTotal, yearSave, yearSell, roi, sd };
+
+  document.getElementById('top_metrics').innerHTML =
+    `<div class="metric"><div class="metric-label">Tizim narxi</div><div class="metric-value" style="color:var(--text);">${fmt(realCost)}</div><div class="metric-note">jihozlar + o'rnatish</div></div>` +
+    `<div class="metric"><div class="metric-label">Yillik daromad</div><div class="metric-value" style="color:var(--green);">${fmt(yearTotal)}</div><div class="metric-note">tejash + sotish</div></div>` +
+    `<div class="metric"><div class="metric-label">O'zini qoplash</div><div class="metric-value" style="color:var(--amber);">${roi.toFixed(1)} yil</div><div class="metric-note">keyin sof foyda</div></div>` +
+    `<div class="metric"><div class="metric-label">25 yillik foyda</div><div class="metric-value" style="color:var(--green);">${fmt(yearTotal*25 - realCost)}</div><div class="metric-note">sof daromad</div></div>`;
+
+  let sh = '';
+  sd.forEach(s => {
+    sh += `<div class="season-card ${s.cls}">
+      <div class="s-name" style="color:${s.color};">${s.name}</div>
+      <div class="s-months">${s.months} | ${s.avgPsh} kVt*s/kun</div>
+      <div class="s-row"><span class="s-row-label">Ishlab chiqarish</span><span class="s-row-val">${fmt(s.seasonGen)} kVt</span></div>
+      <div class="s-row"><span class="s-row-label">Tejash</span><span class="s-row-val" style="color:var(--green);">${fmt(s.saving)}</span></div>
+      <div class="s-row"><span class="s-row-label">Sotish</span><span class="s-row-val" style="color:var(--amber);">${fmt(s.selling)}</span></div>
+      <div class="s-divider"></div>
+      <div class="s-total"><span>Jami</span><span style="color:${s.color};">${fmt(s.total)}</span></div>
+    </div>`;
+  });
+  document.getElementById('seasons').innerHTML = sh;
+
+  const maxBar = Math.max(...sd.map(s => s.total));
+  let bh = '';
+  sd.forEach(s => {
+    const saveW = maxBar > 0 ? Math.round(s.saving / maxBar * 100) : 0;
+    const sellW = maxBar > 0 ? Math.round(s.selling / maxBar * 100) : 0;
+    bh += `<div class="bar-group">
+      <div class="bar-header"><span class="bar-name">${s.name}</span><span class="bar-amount" style="color:${s.color};">${fmt(s.total)}</span></div>
+      <div style="display:flex;gap:3px;">
+        <div class="bar-track" style="flex:${saveW || 1};"><div class="bar-fill" style="width:100%;background:var(--green);"></div></div>
+        <div class="bar-track" style="flex:${sellW || 0.01};"><div class="bar-fill" style="width:100%;background:var(--amber);"></div></div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('bars').innerHTML = bh;
+
+  document.getElementById('year_projection').innerHTML = `
+    <div class="card">
+      <div class="section-title">Uzoq muddatli foyda</div>
+      <div class="year-grid">
+        <div class="year-cell">
+          <div class="y-label">3 yil</div>
+          <div class="y-value" style="color:${yearTotal*3 > realCost ? 'var(--green)' : 'var(--coral)'};">${fmt(yearTotal*3 - realCost)}</div>
+          <div class="y-sub">sof foyda</div>
+        </div>
+        <div class="year-cell">
+          <div class="y-label">5 yil</div>
+          <div class="y-value" style="color:var(--green);">${fmt(yearTotal*5 - realCost)}</div>
+          <div class="y-sub">sof foyda</div>
+        </div>
+        <div class="year-cell">
+          <div class="y-label">10 yil</div>
+          <div class="y-value" style="color:var(--green);">${fmt(yearTotal*10 - realCost)}</div>
+          <div class="y-sub">sof foyda</div>
+        </div>
+      </div>
+    </div>`;
+
+  const summerData = sd[1];
+  document.getElementById('pitch_cards').innerHTML = `
+    <div class="profit-card profit-green">
+      <div class="p-title" style="color:var(--green);">Yozda eng ko'p foyda</div>
+      <div class="p-text" style="color:var(--green);">Yozda ${kw} kVt panel oyiga ${fmt(Math.round(summerData.seasonGen/3))} kVt ishlab chiqaradi. Ortiqcha ${fmt(Math.round(summerData.excess/3))} kVt ni davlatga ${sellP.toLocaleString()} so'mdan sotasiz. Faqat yozda oyiga ${fmt(Math.round(summerData.total/3))} so'm!</div>
+    </div>
+    <div class="profit-card profit-amber">
+      <div class="p-title" style="color:var(--amber);">Elektr narxi har yil oshadi</div>
+      <div class="p-text" style="color:var(--amber);">Hozir ${tariff} so'm/kVt. Har yili 10% oshsa, 5 yildan keyin ${Math.round(tariff*1.61)} so'm bo'ladi. Panel hozir o'rnatsangiz — tejamkorlik har yili oshib boradi!</div>
+    </div>`;
+}
+
+function shareResult() {
+  const r = lastResult;
+  const text = `☀️ SunVolt Energy — Quyosh panel kalkulyatori\n\n` +
+    `📊 Tizim: ${r.kw} kVt\n` +
+    `💰 Xarajat: ${fmt(r.realCost)}\n` +
+    `✅ Yillik daromad: ${fmt(r.yearTotal)}\n` +
+    `   ⚡ Tejash: ${fmt(r.yearSave)}\n` +
+    `   🔄 Sotish: ${fmt(r.yearSell)}\n` +
+    `⏱ O'zini qoplash: ${r.roi.toFixed(1)} yil\n` +
+    `🏆 25 yillik sof foyda: ${fmt(r.yearTotal*25 - r.realCost)}\n\n` +
+    `O'zingiz ham hisoblang 👉 https://t.me/sunvolt_calc_bot\n` +
+    `Bepul konsultatsiya: @Elementary_221`;
+
+  if (tg) {
+    const shareUrl = 'https://t.me/share/url?text=' + encodeURIComponent(text);
+    tg.openTelegramLink(shareUrl);
+  } else {
+    if (navigator.share) {
+      navigator.share({ title: 'SunVolt Kalkulyator', text: text });
+    } else {
+      navigator.clipboard.writeText(text).then(() => alert('Nusxa olindi! Do\'stingizga yuboring.'));
+    }
+  }
+}
+
+function requestConsult() {
+  const r = lastResult;
+  const msg = `Salom! Quyosh panel haqida konsultatsiya olmoqchiman.\n` +
+    `Tizim: ${r.kw} kVt\nOylik sarfim: ${r.usage} kVt\nKalkulyator natijasi: yiliga ${fmt(r.yearTotal)} foyda.`;
+  if (tg) {
+    tg.openTelegramLink('https://t.me/Elementary_221?text=' + encodeURIComponent(msg));
+  } else {
+    window.open('https://t.me/Elementary_221?text=' + encodeURIComponent(msg));
+  }
+}
+
+calc();
+</script>
+</body>
+</html>
